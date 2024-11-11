@@ -1,4 +1,9 @@
 import styled from "styled-components";
+import { formatCurrency } from "../../utils/helpers";
+import PropTypes from "prop-types";
+import { useState } from "react";
+import CreateCabinForm from "./CreateCabinForm";
+import { useDeleteCabin } from "./useDeleteCabin";
 
 const TableRow = styled.div`
   display: grid;
@@ -6,7 +11,6 @@ const TableRow = styled.div`
   column-gap: 2.4rem;
   align-items: center;
   padding: 1.4rem 2.4rem;
-
   &:not(:last-child) {
     border-bottom: 1px solid var(--color-grey-100);
   }
@@ -38,3 +42,63 @@ const Discount = styled.div`
   font-weight: 500;
   color: var(--color-green-700);
 `;
+
+const CabinRow = ({ cabin }) => {
+  const [showForm, setShowForm] = useState(false);
+  const { isDeleting, deleteCabin } = useDeleteCabin();
+
+  const {
+    id: cabinId,
+    name,
+    maxCapacity,
+    regularPrice,
+    discount,
+    image,
+  } = cabin;
+
+  return (
+    <>
+      <TableRow role="row">
+        <Img src={image} alt="" />
+        <Cabin>{name}</Cabin>
+        <div>Fits up to {maxCapacity} guests</div>
+        <Price>{formatCurrency(regularPrice)}</Price>
+        {discount ? (
+          <Discount>{formatCurrency(discount)}</Discount>
+        ) : (
+          <span>&mdash;</span>
+        )}
+        <div className="flex gap-5">
+          <button
+            className="p-1 bg-gray-200 border border-black"
+            onClick={() => setShowForm((show) => !show)}
+          >
+            Edit
+          </button>
+
+          <button
+            className="px-2 py-1 bg-gray-200 border border-black"
+            onClick={() => deleteCabin(cabinId)}
+            disabled={isDeleting}
+          >
+            Delete
+          </button>
+        </div>
+      </TableRow>
+      {showForm && <CreateCabinForm cabinToEdit={cabin} />}
+    </>
+  );
+};
+
+CabinRow.propTypes = {
+  cabin: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string,
+    maxCapacity: PropTypes.number,
+    regularPrice: PropTypes.number,
+    discount: PropTypes.number,
+    image: PropTypes.string,
+  }),
+};
+
+export default CabinRow;
