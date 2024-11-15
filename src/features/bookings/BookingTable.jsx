@@ -1,9 +1,19 @@
 import BookingRow from "./BookingRow";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
+import Empty from "../../ui/Empty";
+import PropTypes from "prop-types";
+import useBookings from "./useBookings";
+import Spinner from "../../ui/Spinner";
+import Pagination from "../../ui/Pagination";
 
 function BookingTable() {
-  const bookings = [];
+  const { bookings, isLoading, count } = useBookings();
+
+  if (isLoading) <Spinner />;
+
+  if (!bookings || bookings.length === 0)
+    return <Empty resourceName="bookings" />;
 
   return (
     <Menus>
@@ -23,9 +33,17 @@ function BookingTable() {
             <BookingRow key={booking.id} booking={booking} />
           )}
         />
+
+        <Table.Footer>
+          <Pagination count={count} />
+        </Table.Footer>
       </Table>
     </Menus>
   );
 }
+
+BookingTable.propTypes = {
+  resourceName: PropTypes.string.isRequired,
+};
 
 export default BookingTable;

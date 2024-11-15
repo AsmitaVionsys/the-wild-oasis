@@ -1,11 +1,23 @@
 import styled from "styled-components";
 import { format, isToday } from "date-fns";
-
+import PropTypes from "prop-types";
 import Tag from "../../ui/Tag";
 import Table from "../../ui/Table";
-
 import { formatCurrency } from "../../utils/helpers";
 import { formatDistanceFromNow } from "../../utils/helpers";
+import ConfirmDelete from "../../ui/ConfirmDelete";
+import {
+  HiEye,
+  HiArrowDownOnSquare,
+  HiArrowUpOnSquare,
+  HiTrash,
+} from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
+import Menus from "../../ui/Menus";
+import { useQueryClient } from "@tanstack/react-query";
+import useCheckout from "../check-in-out/useCheckout";
+import Modal from "../../ui/Modal";
+import { useDeleteBooking } from "../bookings/useDeleteBooking";
 
 const Cabin = styled.div`
   font-size: 1.6rem;
@@ -37,21 +49,29 @@ const Amount = styled.div`
 function BookingRow({
   booking: {
     id: bookingId,
-    created_at,
+    // created_at,
     startDate,
     endDate,
     numNights,
-    numGuests,
+    // numGuests,
     totalPrice,
     status,
     guests: { fullName: guestName, email },
     cabins: { name: cabinName },
   },
 }) {
+  const navigate = useNavigate();
+  const { checkout, isCheckingOut } = useCheckout();
+  const { isDeleting, deleteBooking } = useDeleteBooking();
+
   const statusToTagName = {
     unconfirmed: "blue",
     "checked-in": "green",
     "checked-out": "silver",
+  };
+  const queryClient = useQueryClient();
+  const handleInvalidate = () => {
+    queryClient.invalidateQueries(["booking"]); // Step 3: Invalidate the query with the specific key
   };
 
   return (
@@ -79,8 +99,85 @@ function BookingRow({
       <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
 
       <Amount>{formatCurrency(totalPrice)}</Amount>
+
+      <Modal>
+        <Menus.Menu>
+          <Menus.Toggle id={bookingId} />
+          <Menus.List id={bookingId}>
+            <Menus.Button
+              icon={<HiEye />}
+              onClick={() => {
+                handleInvalidate();
+                navigate(`/bookings/${bookingId}`);
+              }}
+            >
+              See details
+            </Menus.Button>
+
+            {status === "unconfirmed" && (
+              <Menus.Button
+                icon={<HiArrowDownOnSquare />}
+                onClick={() => {
+                  handleInvalidate();
+                  navigate(`/checkin/${bookingId}`);
+                }}
+              >
+                Check in
+              </Menus.Button>
+            )}
+
+            {status === "checked-in" && (
+              <Menus.Button
+                icon={<HiArrowUpOnSquare />}
+                onClick={() => {
+                  handleInvalidate();
+                  checkout(bookingId);
+                }}
+                disabled={isCheckingOut}
+              >
+                Check out
+              </Menus.Button>
+            )}
+
+            <Modal.Open opens="delete">
+              <Menus.Button icon={<HiTrash />}>Delete booking</Menus.Button>
+            </Modal.Open>
+          </Menus.List>
+        </Menus.Menu>
+
+        <Modal.Window name="delete">
+          <ConfirmDelete
+            resourceName="bookings"
+            onConfirm={() => {
+              handleInvalidate();
+              deleteBooking(bookingId);
+            }}
+            disabled={isDeleting}
+          />
+        </Modal.Window>
+      </Modal>
     </Table.Row>
   );
 }
+
+BookingRow.propTypes = {
+  booking: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    created_at: PropTypes.string,
+    startDate: PropTypes.string,
+    endDate: PropTypes.string,
+    numNights: PropTypes.number,
+    numGuests: PropTypes.number,
+    totalPrice: PropTypes.number,
+    status: PropTypes.string,
+    guests: PropTypes.shape({
+      fullName: PropTypes.string,
+      email: PropTypes.string,
+    }),
+    cabins: PropTypes.shape({
+      name: PropTypes.string,
+    }),
+  }).isRequired,
+};
 
 export default BookingRow;

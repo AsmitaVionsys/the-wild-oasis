@@ -1,5 +1,39 @@
+import { page_size } from "../utils/constants";
 import { getToday } from "../utils/helpers";
 import supabase from "./supabase";
+
+export async function getBookings({ filter, sortBy, page }) {
+  let query = supabase
+    .from("bookings")
+    .select(
+      "id, created_at, startDate, endDate, numNights, numGuests, status, totalPrice, cabins(name), guests(fullName, email)",
+      { count: "exact" }
+    );
+
+  //filter
+  if (filter) query = query[filter.method || "eq"](filter.field, filter.value); //filter methods passed dynamically from useBooking
+
+  // sorting
+  if (sortBy)
+    query = query.order(sortBy.field, {
+      ascending: sortBy.direction === "asc",
+    });
+
+  if (page) {
+    const from = (page - 1) * page_size;
+    const to = from + page_size - 1; // Fetching 10 rows per page for pagination. Adjust this as needed. 10 rows is a common choice. 100 rows would be more efficient for large datasets.
+    query = query.range(from, to);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error(error);
+    throw new Error("Bookings could not be loaded");
+  }
+
+  return { data, count };
+}
 
 export async function getBooking(id) {
   const { data, error } = await supabase
