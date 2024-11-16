@@ -100,7 +100,7 @@ Modal.Window = Window;
 
 Modal.propTypes = {
   children: PropTypes.node.isRequired,
-  onClose: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
   name: PropTypes.string,
 };
 

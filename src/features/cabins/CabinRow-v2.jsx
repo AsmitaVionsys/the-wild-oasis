@@ -140,7 +140,7 @@ const CabinRow = ({ cabin }) => {
 
 CabinRow.propTypes = {
   cabin: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired,
     name: PropTypes.string,
     maxCapacity: PropTypes.number,
     regularPrice: PropTypes.number,

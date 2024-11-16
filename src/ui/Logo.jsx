@@ -11,7 +11,7 @@ const Img = styled.img`
 
 function Logo() {
   return (
-    <StyledLogo>
+    <StyledLogo className="flex justify-center items-center">
       <Img src="/logo-light.png" alt="Logo" />
     </StyledLogo>
   );

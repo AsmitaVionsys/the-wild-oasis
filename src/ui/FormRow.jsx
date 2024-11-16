@@ -38,9 +38,11 @@ const Error = styled.span`
 `;
 
 const FormRow = ({ label, error, children }) => {
+  const childId = children?.props?.id || "";
+
   return (
     <StyledFormRow>
-      <Label htmlFor={children.props.id}>{label}</Label>
+      <Label htmlFor={childId}>{label}</Label>
       {children}
       {error ? <Error>{error}</Error> : null}
     </StyledFormRow>
@@ -48,9 +50,9 @@ const FormRow = ({ label, error, children }) => {
 };
 
 FormRow.propTypes = {
-  label: PropTypes.string.isRequired,
+  label: PropTypes.string,
   error: PropTypes.string,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
 };
 
 export default FormRow;
